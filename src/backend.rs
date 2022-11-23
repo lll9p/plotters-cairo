@@ -15,7 +15,6 @@ pub struct CairoBackend<'a> {
     init_flag: bool,
 }
 
-
 #[derive(Debug)]
 pub struct CairoError;
 
@@ -270,7 +269,7 @@ impl<'a> DrawingBackend for CairoBackend<'a> {
             .text_extents(text)
             .map_err(DrawingErrorKind::DrawingError)?;
 
-        Ok((extents.width as u32, extents.height as u32))
+        Ok((extents.width() as u32, extents.height() as u32))
     }
 
     fn draw_text<S: BackendTextStyle>(
@@ -312,18 +311,18 @@ impl<'a> DrawingBackend for CairoBackend<'a> {
 
         let dx = match style.anchor().h_pos {
             HPos::Left => 0.0,
-            HPos::Right => -extents.width,
-            HPos::Center => -extents.width / 2.0,
+            HPos::Right => -extents.width(),
+            HPos::Center => -extents.width() / 2.0,
         };
         let dy = match style.anchor().v_pos {
-            VPos::Top => extents.height,
-            VPos::Center => extents.height / 2.0,
+            VPos::Top => extents.height(),
+            VPos::Center => extents.height() / 2.0,
             VPos::Bottom => 0.0,
         };
 
         self.context.move_to(
-            f64::from(x) + dx - extents.x_bearing,
-            f64::from(y) + dy - extents.y_bearing - extents.height,
+            f64::from(x) + dx - extents.x_bearing(),
+            f64::from(y) + dy - extents.y_bearing() - extents.height(),
         );
 
         self.context
@@ -361,7 +360,7 @@ mod test {
         let file_name = format!("{}.ps", name);
         let file_path = Path::new(DST_DIR).join(file_name);
         println!("{:?} created", file_path);
-        fs::write(file_path, &content).unwrap();
+        fs::write(file_path, content).unwrap();
     }
 
     fn draw_mesh_with_custom_ticks(tick_size: i32, test_name: &str) {
@@ -449,7 +448,7 @@ mod test {
                     let x = 150_i32 + (dx1 as i32 * 3 + dx2 as i32) * 150;
                     let y = 120 + dy as i32 * 150;
                     let draw = |x, y, text| {
-                        root.draw(&Circle::new((x, y), 3, &BLACK.mix(0.5))).unwrap();
+                        root.draw(&Circle::new((x, y), 3, BLACK.mix(0.5))).unwrap();
                         let style = TextStyle::from(("sans-serif", 20).into_font())
                             .pos(Pos::new(*h_pos, *v_pos))
                             .transform(trans.clone());
@@ -529,13 +528,13 @@ mod test {
             .unwrap();
 
         chart
-            .draw_series(std::iter::once(Circle::new((5, 15), 5, &RED)))
+            .draw_series(std::iter::once(Circle::new((5, 15), 5, RED)))
             .expect("Drawing error")
             .label("Series 1")
             .legend(|(x, y)| Circle::new((x, y), 3, RED.filled()));
 
         chart
-            .draw_series(std::iter::once(Circle::new((5, 15), 10, &BLUE)))
+            .draw_series(std::iter::once(Circle::new((5, 15), 10, BLUE)))
             .expect("Drawing error")
             .label("Series 2")
             .legend(|(x, y)| Circle::new((x, y), 3, BLUE.filled()));
@@ -556,7 +555,7 @@ mod test {
         {
             chart
                 .configure_series_labels()
-                .border_style(&BLACK.mix(0.5))
+                .border_style(BLACK.mix(0.5))
                 .position(pos)
                 .draw()
                 .expect("Drawing error");
